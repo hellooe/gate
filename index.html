@@ -1,0 +1,2566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPN Gate & Mihomo 配置生成器</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-card: #152238;
+      --surface-hover: #1c2b46;
+      --surface-subtle: #111a2c;
+      --border: #23334d;
+      --border-light: #33486a;
+      --border-focus: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-glow: rgba(59, 130, 246, 0.2);
+      --success: #10b981;
+      --success-hover: #34d399;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --danger-hover: #f87171;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --purple: #8b5cf6;
+      --radius: 12px;
+      --radius-sm: 6px;
+      --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Custom Sleek Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b648b;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 20px 16px 40px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Modern Glassmorphic Header */
+    header.app-header {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 22px;
+      box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+    }
+
+    .title-group h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+      font-size: 1rem;
+    }
+
+    .title-group h1 .badge-version {
+      font-size: 0.72rem;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .title-group p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .header-stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-stat-pill b {
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+
+    .header-stat-pill .hl-green {
+      color: #34d399;
+    }
+
+    .pill-divider {
+      color: var(--border-light);
+    }
+
+    .protocol-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .proto-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* Grid Layouts */
+    .dashboard-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .dashboard-grid-bottom {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1080px) {
+      .dashboard-grid-2,
+      .dashboard-grid-bottom {
+        grid-template-columns: 1fr;
+      }
+      .header-right {
+        align-items: flex-start;
+      }
+    }
+
+    /* Card System */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 13px 18px;
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-header h2 {
+      font-size: 0.98rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--text);
+    }
+
+    .card-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #93c5fd;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .header-counter {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-counter b {
+      color: var(--primary);
+    }
+
+    .card-body {
+      padding: 16px 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: #141f33;
+    }
+
+    .input-mono {
+      font-family: var(--font-mono) !important;
+      font-size: 0.8rem !important;
+      line-height: 1.45;
+    }
+
+    /* Button System */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-secondary {
+      background: var(--surface-card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-light);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+    .btn-success:hover {
+      background: linear-gradient(135deg, #047857, #059669);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+    .btn-danger-outline:hover {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+    }
+
+    .btn-group-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Tip box */
+    .import-tip {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    /* Front Proxies Table */
+    .front-proxies-wrap {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      max-height: 180px;
+      background: var(--surface-subtle);
+    }
+
+    .front-proxies-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .front-proxies-table th {
+      background: var(--surface-card);
+      padding: 7px 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .front-proxies-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .front-proxies-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .front-name-input {
+      background: var(--bg) !important;
+      padding: 3px 7px !important;
+      font-size: 0.8rem !important;
+      border-radius: 4px !important;
+      border: 1px solid var(--border) !important;
+      width: 100%;
+      max-width: 220px;
+    }
+
+    /* Core Filter Toolbar */
+    .filter-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      background: var(--surface-card);
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .filter-item {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .filter-item label {
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+    }
+
+    .filter-actions-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-badge {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--surface-subtle);
+      padding: 3px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .stats-badge b {
+      color: var(--primary);
+    }
+
+    .stats-badge .hl-green {
+      color: #34d399;
+      font-weight: 700;
+    }
+
+    /* Table Scroll Containers with Sticky Header */
+    .table-scroll-container {
+      position: relative;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface-subtle);
+    }
+
+    .table-main-scroll {
+      max-height: 490px;
+    }
+
+    .table-selected-scroll {
+      max-height: 380px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    thead th {
+      background: #141f33;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 9px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      user-select: none;
+      box-shadow: 0 1px 0 var(--border);
+    }
+
+    thead th.sortable-totalusers {
+      cursor: pointer;
+    }
+
+    thead th.sortable-totalusers:hover {
+      color: var(--text);
+      background: #1c2b46;
+    }
+
+    thead th.sorted-asc::after {
+      content: " ▲";
+      font-size: 0.68rem;
+      color: var(--primary);
+    }
+
+    thead th.sorted-desc::after {
+      content: " ▼";
+      font-size: 0.68rem;
+      color: var(--primary);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    tbody tr.selected {
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    tbody td {
+      padding: 8px 12px;
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    .cell-mono {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .cell-country {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Badges */
+    .country-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.76rem;
+      color: #93c5fd;
+      letter-spacing: 0.04em;
+    }
+
+    .country-name {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .proto-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.69rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .proto-badge.vless { background: rgba(59, 130, 246, 0.18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+    .proto-badge.anytls { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); }
+    .proto-badge.vmess { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .proto-badge.hysteria2 { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .proto-badge.udp { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .proto-badge.tcp { background: rgba(59, 130, 246, 0.18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+
+    .tag-users {
+      color: #facc15;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    .tag-speed {
+      color: #38bdf8;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .tag-ping {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .tag-ping.good { color: #34d399; }
+    .tag-ping.medium { color: #fbbf24; }
+    .tag-ping.poor { color: #f87171; }
+
+    .auth-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: rgba(99, 102, 241, 0.16);
+      border: 1px solid rgba(99, 102, 241, 0.32);
+      color: #a5b4fc;
+      white-space: nowrap;
+    }
+
+    /* Selected Nodes Section */
+    .batch-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      background: var(--surface-card);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .batch-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+    }
+
+    .batch-input-group select {
+      width: auto;
+      min-width: 170px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+    }
+
+    .selected-dialer-select {
+      background: var(--bg) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 0.8rem !important;
+      width: 100%;
+      max-width: 170px;
+    }
+
+    /* Code Preview & Export Block */
+    .output-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      color: var(--text);
+      user-select: none;
+      margin-bottom: 0;
+    }
+
+    .code-wrapper {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #080c14;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-header-bar {
+      padding: 7px 14px;
+      background: #111a2a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .code-area {
+      flex: 1;
+      min-height: 340px;
+      width: 100%;
+      background: transparent;
+      color: #7dd3fc;
+      font-family: var(--font-mono);
+      font-size: 0.81rem;
+      line-height: 1.5;
+      padding: 14px;
+      border: none;
+      resize: none;
+      outline: none;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-card);
+    }
+
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .proxy-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .meta-item {
+      background: var(--surface-card);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .meta-item span {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+    }
+
+    .meta-item b {
+      color: var(--text);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--text-dim);
+      font-size: 0.86rem;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111d33;
+      color: #fff;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 现代拟态导航头 -->
+  <header class="app-header">
+    <div class="title-group">
+      <h1>
+        <span class="logo-icon">⚡</span>
+        <span>VPN Gate & Mihomo 配置生成器</span>
+        <span class="badge-version">Proxies Only</span>
+      </h1>
+      <p>可添加多个前置代理 · 自选 dialer-proxy · 纯粹 proxies 导出</p>
+    </div>
+    <div class="header-right">
+      <div class="header-stat-pill">
+        <span>前置代理: <b id="statHeaderFront">0</b></span>
+        <span class="pill-divider">|</span>
+        <span>节点总数: <b id="statHeaderTotal">0</b></span>
+        <span class="pill-divider">|</span>
+        <span>已勾选: <b class="hl-green" id="statHeaderSelected">0</b></span>
+      </div>
+      <div class="protocol-tags">
+        <span class="proto-tag">VLESS Reality</span>
+        <span class="proto-tag">AnyTLS</span>
+        <span class="proto-tag">VMess WS</span>
+        <span class="proto-tag">Hysteria2</span>
+        <span class="proto-tag">OpenVPN</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-grid-2">
+    <!-- Card 1: 前置代理管理 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <span class="card-num">1</span>
+          <span>前置代理管理 (支持多条)</span>
+        </h2>
+        <span class="header-counter">已添加 <b id="frontProxyCount">0</b> 个</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <textarea 
+            id="frontProxyInput" 
+            class="input-mono" 
+            rows="2" 
+            placeholder="粘贴前置代理分享链接（每行一条，支持 vless://, anytls://, vmess://, hy2://）..."
+          ></textarea>
+        </div>
+        <div class="btn-group-row">
+          <button class="btn btn-primary btn-sm" id="btnAddFrontProxy">➕ 解析并添加</button>
+          <button class="btn btn-secondary btn-sm" id="btnTestExampleProxy">填入示例</button>
+          <button class="btn btn-secondary btn-sm" id="btnClearProxyInput">清空输入</button>
+          <button class="btn btn-danger-outline btn-sm" id="btnClearAllFrontProxies">清空全部</button>
+        </div>
+
+        <!-- 已添加的前置代理列表 -->
+        <div id="frontProxiesListWrap" class="front-proxies-wrap" style="display:none;">
+          <table class="front-proxies-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">协议</th>
+                <th>节点名称 (可直接修改)</th>
+                <th>服务器:端口</th>
+                <th style="width: 50px; text-align:center;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="frontProxiesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: VPN Gate 数据导入 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <span class="card-num">2</span>
+          <span>VPN Gate 数据导入</span>
+        </h2>
+        <span class="header-counter">CSV 文本 / 文件</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <textarea 
+            id="csvTextInput" 
+            class="input-mono" 
+            rows="2" 
+            placeholder="粘贴以 #HostName,IP 开头的 VPN Gate CSV 原始数据，或将文件拖入此区域..."
+          ></textarea>
+        </div>
+        <div class="btn-group-row">
+          <button class="btn btn-primary btn-sm" id="btnParseCsv">⚡ 立即解析</button>
+          <label class="btn btn-secondary btn-sm" style="margin-bottom:0; cursor:pointer;">
+            📁 导入本地 CSV
+            <input type="file" id="fileInput" accept=".csv,.txt" style="display:none;">
+          </label>
+          <button class="btn btn-secondary btn-sm" id="btnClearCsv">清空内容</button>
+          <a href="https://www.vpngate.net/api/iphone/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="text-decoration:none; margin-left:auto;">
+            🔗 官网 API ↗
+          </a>
+        </div>
+        <div class="import-tip">
+          💡 支持拖拽 .csv 或 .txt 文件至上方文本框，纯本地解析，零数据外流。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中间核心全宽 Card: 3. 节点总览与筛选池 -->
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <span class="card-num">3</span>
+        <span>VPN Gate 节点筛选与勾选池</span>
+      </h2>
+      <div class="stats-badge" id="statsBadge">
+        已加载: <b>0</b> 节点 | 当前展示: <b>0</b> | 已勾选: <b class="hl-green" id="selectedCountText">0</b>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- 筛选工具栏: 国家 + TotalUsers 排序 -->
+      <div class="filter-toolbar">
+        <div class="filter-item">
+          <label for="filterCountry">🌍 按国家/地区筛选:</label>
+          <select id="filterCountry">
+            <option value="ALL">全部国家 (请先导入数据)</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="sortOrder">👥 按 TotalUsers (累积用户) 排序:</label>
+          <select id="sortOrder">
+            <option value="desc" selected>TotalUsers 降序 (连接人数多)</option>
+            <option value="asc">TotalUsers 升序 (从小到大)</option>
+          </select>
+        </div>
+        <div class="filter-actions-right">
+          <button class="btn btn-danger-outline btn-sm" id="btnDeselectAllGlobal">清空所有勾选</button>
+        </div>
+      </div>
+
+      <!-- 节点数据大表 (固定容器高度 + Sticky 吸顶表头) -->
+      <div class="table-scroll-container table-main-scroll">
+        <table id="nodesTable">
+          <thead>
+            <tr>
+              <th style="width: 42px; text-align:center;">
+                <input type="checkbox" id="checkAllBoxes" title="勾选/取消当前表格展示的节点">
+              </th>
+              <th style="width: 45px; text-align:center;">#</th>
+              <th>国家 / 地区</th>
+              <th>节点 IP : 远端端口</th>
+              <th>协议</th>
+              <th class="sortable-totalusers sorted-desc" id="thTotalUsers" title="点击切换升序/降序">
+                TotalUsers (累积用户)
+              </th>
+              <th>当前会话</th>
+              <th>标称速度</th>
+              <th>Ping</th>
+              <th>运营商 / 主机名</th>
+              <th style="width: 65px; text-align:center;">详情</th>
+            </tr>
+          </thead>
+          <tbody id="nodesTableBody">
+            <tr>
+              <td colspan="11" class="empty-state">
+                暂无节点数据。请在上方「第 2 步」中粘贴 VPN Gate API 的 CSV 内容，或导入本地 CSV 文件。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部双列联动网格: 4. 已勾选节点管理 (左) + 5. Mihomo Proxies 导出预览 (右) -->
+  <div class="dashboard-grid-bottom">
+    <!-- Card 4: 已勾选节点管理 (左侧) -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <span class="card-num">4</span>
+          <span>已选节点配置 (指定前置代理)</span>
+        </h2>
+        <div class="header-counter">
+          已勾选 <b id="checkedCountHeader" style="color:#34d399;">0</b> 个
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- 批量修改栏 -->
+        <div class="batch-bar">
+          <div class="batch-input-group">
+            <span>批量设置前置代理:</span>
+            <select id="batchDialerAll">
+              <option value="">直连 (不使用前置代理)</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="btnApplyBatchDialer">一键应用</button>
+          </div>
+          <button class="btn btn-danger-outline btn-sm" id="btnClearCheckedSection">清空已选</button>
+        </div>
+
+        <!-- 已选节点表格 (Sticky 吸顶表头 + 滚动容器) -->
+        <div class="table-scroll-container table-selected-scroll">
+          <table class="selected-nodes-table">
+            <thead>
+              <tr>
+                <th style="width: 36px; text-align:center;">#</th>
+                <th>导出节点名</th>
+                <th style="width: 60px;">国家</th>
+                <th>远端地址</th>
+                <th style="width: 60px;">协议</th>
+                <th>认证方式</th>
+                <th style="width: 170px;">前置代理 (dialer-proxy)</th>
+                <th style="width: 45px; text-align:center;">移除</th>
+              </tr>
+            </thead>
+            <tbody id="selectedNodesTbody">
+              <tr>
+                <td colspan="8" class="empty-state">
+                  尚未勾选节点。在上方勾选节点后将在此列出，并可单独指定前置代理。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Mihomo Proxies 配置生成与导出 (右侧) -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <span class="card-num">5</span>
+          <span>Mihomo Proxies 配置导出</span>
+        </h2>
+        <div>
+          <button class="btn btn-primary btn-sm" id="btnGenerate">🚀 刷新配置</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="output-toolbar">
+          <label class="checkbox-label">
+            <input type="checkbox" id="optIncludeFront" checked> 包含已添加的前置代理节点
+          </label>
+          <div class="btn-group-row">
+            <button class="btn btn-secondary btn-sm" id="btnCopyYaml">📋 复制</button>
+            <button class="btn btn-success btn-sm" id="btnDownloadYaml">💾 下载 YAML</button>
+          </div>
+        </div>
+
+        <div class="code-wrapper">
+          <div class="code-header-bar">
+            <span>proxies: YAML 预览</span>
+            <span id="yamlLineCount">0 行</span>
+          </div>
+          <textarea 
+            id="yamlOutput" 
+            class="code-area" 
+            readonly 
+            spellcheck="false"
+            placeholder="# 勾选节点后将实时生成 proxies 配置..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 查看节点详情模态框 -->
+<div class="modal-backdrop" id="ovpnModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle" style="font-size:0.95rem; font-weight:600;">节点 OpenVPN 详情</h3>
+      <button class="modal-close" id="btnModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>提取出的核心参数:</label>
+        <div id="modalMetaGrid" class="proxy-meta-grid" style="margin-bottom:12px;"></div>
+      </div>
+      <div class="form-group">
+        <label>原始 .ovpn 配置文件内容:</label>
+        <textarea id="modalOvpnText" class="code-area" style="min-height:260px; font-size:0.78rem;" readonly></textarea>
+      </div>
+    </div>
+    <div style="padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; background:var(--surface-card);">
+      <button class="btn btn-secondary btn-sm" id="btnDownloadSingleOvpn">下载此 .ovpn 文件</button>
+      <button class="btn btn-primary btn-sm" id="btnModalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 通知 -->
+<div id="toast">已成功复制到剪贴板！</div>
+
+
+<script>
+/**
+ * VPN Gate & Mihomo Proxies Generator
+ * Standalone SPA - Zero External Dependencies
+ */
+
+(function() {
+  // Global State
+  let rawNodes = [];
+  let filteredNodes = [];
+  // Persistent selected node IDs across countries
+  let selectedNodeIds = new Set();
+  // Per-node dialer-proxy assignment map: node.id -> front proxy name (empty string for direct)
+  let nodeDialerMap = new Map();
+  // Multiple front proxies list
+  let frontProxies = [];
+  let activeModalNode = null;
+
+  // DOM Elements
+  const frontProxyInput = document.getElementById('frontProxyInput');
+  const btnAddFrontProxy = document.getElementById('btnAddFrontProxy');
+  const btnTestExampleProxy = document.getElementById('btnTestExampleProxy');
+  const btnClearProxyInput = document.getElementById('btnClearProxyInput');
+  const btnClearAllFrontProxies = document.getElementById('btnClearAllFrontProxies');
+  const frontProxyCount = document.getElementById('frontProxyCount');
+  const frontProxiesListWrap = document.getElementById('frontProxiesListWrap');
+  const frontProxiesTbody = document.getElementById('frontProxiesTbody');
+
+  const csvTextInput = document.getElementById('csvTextInput');
+  const btnParseCsv = document.getElementById('btnParseCsv');
+  const fileInput = document.getElementById('fileInput');
+  const btnClearCsv = document.getElementById('btnClearCsv');
+
+  const filterCountry = document.getElementById('filterCountry');
+  const sortOrder = document.getElementById('sortOrder');
+  const thTotalUsers = document.getElementById('thTotalUsers');
+
+  const nodesTableBody = document.getElementById('nodesTableBody');
+  const checkAllBoxes = document.getElementById('checkAllBoxes');
+  const statsBadge = document.getElementById('statsBadge');
+  const selectedCountText = document.getElementById('selectedCountText');
+  const btnDeselectAllGlobal = document.getElementById('btnDeselectAllGlobal');
+
+  // Selected Nodes Section Elements
+  const checkedCountHeader = document.getElementById('checkedCountHeader');
+  const selectedNodesTbody = document.getElementById('selectedNodesTbody');
+  const batchDialerAll = document.getElementById('batchDialerAll');
+  const btnApplyBatchDialer = document.getElementById('btnApplyBatchDialer');
+  const btnClearCheckedSection = document.getElementById('btnClearCheckedSection');
+
+  // Output Section Elements
+  const yamlOutput = document.getElementById('yamlOutput');
+  const btnGenerate = document.getElementById('btnGenerate');
+  const btnCopyYaml = document.getElementById('btnCopyYaml');
+  const btnDownloadYaml = document.getElementById('btnDownloadYaml');
+  const optIncludeFront = document.getElementById('optIncludeFront');
+
+  // Modal Elements
+  const ovpnModal = document.getElementById('ovpnModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMetaGrid = document.getElementById('modalMetaGrid');
+  const modalOvpnText = document.getElementById('modalOvpnText');
+  const btnModalClose = document.getElementById('btnModalClose');
+  const btnModalOk = document.getElementById('btnModalOk');
+  const btnDownloadSingleOvpn = document.getElementById('btnDownloadSingleOvpn');
+
+  const toast = document.getElementById('toast');
+
+  // Toast Helper
+  let toastTimer = null;
+  function showToast(msg, duration = 2500) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, duration);
+  }
+
+  // HTML escape to prevent XSS
+  function escapeHtml(str) {
+    if (str === undefined || str === null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Safe decodeURIComponent that doesn't throw URIError on raw %
+  function safeDecodeURIComponent(str) {
+    if (!str) return '';
+    try {
+      return decodeURIComponent(str);
+    } catch (e) {
+      return str;
+    }
+  }
+
+
+  // Base64 UTF-8 decode (supports standard Base64 and URL-safe Base64 with/without padding)
+  function decodeBase64Utf8(base64Str) {
+    let clean = base64Str.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    while (clean.length % 4 !== 0) {
+      clean += '=';
+    }
+    const binary = atob(clean);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  // RFC-4180 CSV parser
+  function parseCsvLine(line) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current);
+    return values;
+  }
+
+  function yamlQuote(str) {
+    if (str === undefined || str === null) return '""';
+    return JSON.stringify(String(str));
+  }
+
+  function yamlBlock(indent, key, val) {
+    if (!val) return '';
+    const lines = val.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n');
+    return `${indent}${key}: |\n` + lines.map(line => `${indent}  ${line}`).join('\n') + '\n';
+  }
+
+  // ==========================================
+  // 1. FRONT PROXY PARSERS
+  // ==========================================
+
+  function parseVless(uri) {
+    const url = new URL(uri);
+    const uuid = url.username;
+    if (!uuid) {
+      throw new Error('VLESS 链接缺少 UUID');
+    }
+    const host = url.hostname;
+    const port = parseInt(url.port, 10) || 443;
+    const hashName = safeDecodeURIComponent(url.hash.replace(/^#/, '')) || 'FRONT-VLESS';
+    const p = url.searchParams;
+    const security = (p.get('security') || '').toLowerCase();
+    const flow = p.get('flow') || '';
+    const sni = p.get('sni') || p.get('serverName') || p.get('peer') || host;
+    const fp = p.get('fp') || 'chrome';
+    const pbk = p.get('pbk') || '';
+    const sid = p.get('sid') || '';
+    const network = (p.get('type') || 'tcp').toLowerCase();
+    const wsPath = p.get('path') || '/';
+    const wsHost = p.get('host') || sni;
+
+    return {
+      protocol: 'vless',
+      name: hashName,
+      server: host,
+      port,
+      uuid,
+      network,
+      flow,
+      tls: true,
+      udp: true,
+      servername: sni,
+      clientFingerprint: fp,
+      isReality: security === 'reality',
+      realityOpts: {
+        publicKey: pbk,
+        shortId: sid
+      },
+      wsOpts: network === 'ws' ? {
+        path: wsPath,
+        headers: { Host: wsHost }
+      } : null
+    };
+  }
+
+  function parseAnyTls(uri) {
+    const url = new URL(uri);
+    const password = safeDecodeURIComponent(url.username || url.password || url.searchParams.get('password') || '');
+    const host = url.hostname;
+    const port = parseInt(url.port, 10) || 443;
+    const hashName = safeDecodeURIComponent(url.hash.replace(/^#/, '')) || 'FRONT-ANYTLS';
+    const p = url.searchParams;
+    const sni = p.get('sni') || p.get('peer') || host;
+    const fp = p.get('fp') || p.get('client-fingerprint') || 'chrome';
+    const insecure = p.get('insecure') === '1' || p.get('skip-cert-verify') === 'true';
+
+    return {
+      protocol: 'anytls',
+      name: hashName,
+      server: host,
+      port,
+      password,
+      udp: true,
+      sni,
+      clientFingerprint: fp,
+      skipCertVerify: insecure
+    };
+  }
+
+  function parseVmess(uri) {
+    let raw = uri.replace(/^vmess:\/\//i, '').trim();
+    if (raw.includes('%')) {
+      raw = safeDecodeURIComponent(raw);
+    }
+
+    // Support standard URL format (e.g. vmess://uuid@host:port)
+    if (raw.includes('@')) {
+      const url = new URL(uri);
+      const uuid = url.username;
+      const host = url.hostname;
+      const port = parseInt(url.port, 10) || 443;
+      const hashName = safeDecodeURIComponent(url.hash.replace(/^#/, '')) || 'FRONT-VMESS';
+      const p = url.searchParams;
+      const network = (p.get('type') || p.get('net') || 'ws').toLowerCase();
+      const wsPath = p.get('path') || '/';
+      const wsHost = p.get('host') || host;
+      const tls = p.get('tls') === 'tls' || p.get('security') === 'tls';
+      const sni = p.get('sni') || wsHost || host;
+      const fp = p.get('fp') || 'chrome';
+
+      return {
+        protocol: 'vmess',
+        name: hashName,
+        server: host,
+        port,
+        uuid,
+        alterId: parseInt(p.get('aid') || '0', 10) || 0,
+        cipher: p.get('scy') || 'auto',
+        udp: true,
+        network,
+        wsOpts: { path: wsPath, headers: { Host: wsHost } },
+        tls,
+        servername: sni,
+        clientFingerprint: fp
+      };
+    }
+
+    // Standard V2RayN Base64 JSON format
+    let jsonStr = '';
+    try {
+      jsonStr = decodeBase64Utf8(raw);
+    } catch (e) {
+      jsonStr = atob(raw);
+    }
+    const cfg = JSON.parse(jsonStr);
+    const name = cfg.ps || 'FRONT-VMESS';
+    const server = cfg.add;
+    const port = parseInt(cfg.port, 10) || 443;
+    const uuid = cfg.id;
+    const alterId = parseInt(cfg.aid, 10) || 0;
+    const network = (cfg.net || 'ws').toLowerCase();
+    const wsPath = cfg.path || '/';
+    const wsHost = cfg.host || server;
+    const tls = (cfg.tls || '').toLowerCase() === 'tls';
+    const sni = cfg.sni || wsHost || server;
+    const fp = cfg.fp || 'chrome';
+    const cipher = cfg.scy || 'auto';
+
+    return {
+      protocol: 'vmess',
+      name,
+      server,
+      port,
+      uuid,
+      alterId,
+      cipher,
+      udp: true,
+      network,
+      wsOpts: {
+        path: wsPath,
+        headers: { Host: wsHost }
+      },
+      tls,
+      servername: sni,
+      clientFingerprint: fp
+    };
+  }
+
+  function parseHysteria2(uri) {
+    let clean = uri.replace(/^hy2:\/\//i, 'hysteria2://');
+    let mports = '';
+
+    // Handle port-hopping syntax (e.g. host:443,10000-20000) which standard URL parser rejects
+    const mportMatch = clean.match(/@([^/:?#]+):([0-9,\-]+)([/?#]|$)/);
+    if (mportMatch) {
+      const portPart = mportMatch[2];
+      if (portPart.includes(',') || portPart.includes('-')) {
+        mports = portPart;
+        const firstPort = parseInt(portPart.split(/[,\-]/)[0], 10) || 443;
+        clean = clean.replace(':' + portPart, ':' + firstPort);
+      }
+    }
+
+    const url = new URL(clean);
+    const password = safeDecodeURIComponent(url.username || url.password || url.searchParams.get('auth') || url.searchParams.get('password') || '');
+    const host = url.hostname;
+    const port = parseInt(url.port, 10) || 443;
+    const hashName = safeDecodeURIComponent(url.hash.replace(/^#/, '')) || 'FRONT-HY2';
+    const p = url.searchParams;
+    const sni = p.get('sni') || p.get('peer') || host;
+    const insecure = p.get('insecure') === '1' || p.get('skip-cert-verify') === 'true' || p.get('allowInsecure') === '1';
+    const obfs = p.get('obfs') || p.get('obfs-type');
+    const obfsPassword = p.get('obfs-password');
+
+    return {
+      protocol: 'hysteria2',
+      name: hashName,
+      server: host,
+      port,
+      mports,
+      password,
+      sni,
+      skipCertVerify: insecure,
+      obfs,
+      obfsPassword
+    };
+  }
+
+  function parseFrontProxyLink(link) {
+    if (!link || !link.trim()) return null;
+    const trimmed = link.trim();
+    if (trimmed.startsWith('vless://')) {
+      return parseVless(trimmed);
+    } else if (trimmed.startsWith('anytls://')) {
+      return parseAnyTls(trimmed);
+    } else if (trimmed.startsWith('vmess://')) {
+      return parseVmess(trimmed);
+    } else if (trimmed.startsWith('hysteria2://') || trimmed.startsWith('hy2://')) {
+      return parseHysteria2(trimmed);
+    } else {
+      throw new Error(`未识别的协议格式: ${trimmed.slice(0, 30)}...`);
+    }
+  }
+
+  function addFrontProxiesFromText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      alert('请先输入前置代理链接！');
+      return;
+    }
+
+    let addedCount = 0;
+    let errors = [];
+
+    for (const line of lines) {
+      try {
+        const parsed = parseFrontProxyLink(line);
+        if (parsed) {
+          let baseName = parsed.name || `FRONT-${parsed.protocol.toUpperCase()}`;
+          let uniqueName = baseName;
+          let counter = 1;
+          while (frontProxies.some(p => p.name === uniqueName)) {
+            counter++;
+            uniqueName = `${baseName}-${counter}`;
+          }
+          parsed.name = uniqueName;
+          parsed.id = 'fp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+          frontProxies.push(parsed);
+          addedCount++;
+        }
+      } catch (err) {
+        errors.push(err.message);
+      }
+    }
+
+    renderFrontProxiesList();
+    updateBatchDialerDropdown();
+    renderSelectedNodesTable();
+    generateYaml();
+
+    if (addedCount > 0) {
+      frontProxyInput.value = '';
+      showToast(`成功添加 ${addedCount} 个前置代理节点！`);
+    }
+    if (errors.length > 0) {
+      alert(`部分链接添加失败：\n${errors.join('\n')}`);
+    }
+  }
+
+  function renderFrontProxiesList() {
+    frontProxyCount.textContent = frontProxies.length;
+    const elHeaderFront = document.getElementById('statHeaderFront');
+    if (elHeaderFront) elHeaderFront.textContent = frontProxies.length;
+
+    if (frontProxies.length === 0) {
+      frontProxiesListWrap.style.display = 'none';
+      frontProxiesTbody.innerHTML = '';
+      return;
+    }
+
+    frontProxiesListWrap.style.display = 'block';
+    const rows = frontProxies.map((p) => {
+      return `
+        <tr data-id="${escapeHtml(p.id)}">
+          <td><span class="proto-badge ${escapeHtml(p.protocol)}">${escapeHtml(p.protocol)}</span></td>
+          <td>
+            <input type="text" class="front-name-input" data-id="${escapeHtml(p.id)}" value="${escapeHtml(p.name)}" title="修改名称">
+          </td>
+          <td><span class="cell-mono">${escapeHtml(p.server)}:${escapeHtml(String(p.port))}</span></td>
+          <td style="text-align:center;">
+            <button class="btn btn-danger-outline btn-sm btn-del-proxy" data-id="${escapeHtml(p.id)}">删除</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    frontProxiesTbody.innerHTML = rows.join('');
+  }
+
+  function updateBatchDialerDropdown() {
+    let html = `<option value="">直连 (不使用前置代理)</option>`;
+    for (const p of frontProxies) {
+      html += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${escapeHtml(p.protocol.toUpperCase())})</option>`;
+    }
+    batchDialerAll.innerHTML = html;
+  }
+
+  // ==========================================
+  // 2. OPENVPN & VPN GATE CSV PARSERS
+  // ==========================================
+
+  function parseOvpnConfig(ovpnText) {
+    if (!ovpnText) return null;
+    const remoteMatch = ovpnText.match(/^[ \t]*remote[ \t]+(\S+)[ \t]+(\d+)/im);
+    const caMatch = ovpnText.match(/<ca>\s*([\s\S]*?)\s*<\/ca>/i);
+    const certMatch = ovpnText.match(/<cert>\s*([\s\S]*?)\s*<\/cert>/i);
+    const keyMatch = ovpnText.match(/<key>\s*([\s\S]*?)\s*<\/key>/i);
+    if (!remoteMatch || !caMatch) return null;
+
+    // Detect authentication configuration dynamically from the node's .ovpn itself
+    const hasAuthUserPass = /^[ \t]*auth-user-pass\b/im.test(ovpnText);
+    const hasCertKey = Boolean(certMatch && keyMatch);
+
+    const tlsCryptMatch = ovpnText.match(/<tls-crypt>\s*([\s\S]*?)\s*<\/tls-crypt>/i);
+
+    function getDir(dir) {
+      const m = ovpnText.match(new RegExp(`^[ \\t]*${dir}(?:[ \\t]+([^\\r\\n#;]+?))?[ \\t]*(?:[#;].*)?$`, 'im'));
+      return m && m[1] ? m[1].trim() : null;
+    }
+
+    const protoVal = (getDir('proto') || '').toLowerCase();
+    const proto = (protoVal === 'tcp' || protoVal === 'tcp-client') ? 'tcp' : 'udp';
+    const cipher = getDir('cipher');
+    const dataCiphersRaw = getDir('data-ciphers');
+    let dataCiphers = [];
+    const allowedCiphers = new Set(["AES-128-GCM", "AES-256-GCM", "AES-128-CBC", "AES-256-CBC", "CHACHA20-POLY1305"]);
+    if (dataCiphersRaw) {
+      dataCiphers = dataCiphersRaw.split(':')
+        .map(c => c.trim().toUpperCase())
+        .filter(c => allowedCiphers.has(c));
+    }
+    const auth = getDir('auth');
+    const compLzo = getDir('comp-lzo');
+
+    return {
+      server: remoteMatch[1],
+      port: parseInt(remoteMatch[2], 10),
+      proto,
+      hasAuthUserPass,
+      hasCertKey,
+      ca: caMatch[1].trim(),
+      cert: certMatch ? certMatch[1].trim() : null,
+      key: keyMatch ? keyMatch[1].trim() : null,
+      tlsCrypt: tlsCryptMatch ? tlsCryptMatch[1].trim() : null,
+      cipher,
+      dataCiphers,
+      auth,
+      compLzo,
+      rawOvpn: ovpnText
+    };
+  }
+
+  function parseVpnGateCsv(content) {
+    const lines = content.split(/\r?\n/);
+    let headerIndex = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('#HostName,') || lines[i].startsWith('HostName,')) {
+        headerIndex = i;
+        break;
+      }
+    }
+    if (headerIndex === -1) {
+      throw new Error('未在数据中找到标准 VPN Gate CSV 格式表头 (#HostName,...)。请检查是否完整复制了 API 内容。');
+    }
+
+    const rawHeader = lines[headerIndex].replace(/^#/, '');
+    const headers = parseCsvLine(rawHeader);
+    const parsedList = [];
+
+    for (let i = headerIndex + 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line || line.startsWith('#') || line.startsWith('*')) continue;
+      const row = parseCsvLine(line);
+      if (row.length < headers.length) continue;
+
+      const record = {};
+      for (let j = 0; j < headers.length; j++) {
+        record[headers[j]] = row[j];
+      }
+
+      if (!record.IP || !record.OpenVPN_ConfigData_Base64) continue;
+
+      let ovpn = null;
+      try {
+        const decodedOvpn = decodeBase64Utf8(record.OpenVPN_ConfigData_Base64);
+        ovpn = parseOvpnConfig(decodedOvpn);
+      } catch (e) {
+        continue;
+      }
+
+      if (!ovpn) continue;
+
+      const speedBytes = parseFloat(record.Speed) || 0;
+      const speedMbps = parseFloat((speedBytes * 8 / 1000000).toFixed(1));
+      const totalUsers = parseInt(record.TotalUsers, 10) || 0;
+      const ping = parseInt(record.Ping, 10) || 0;
+      const sessions = parseInt(record.NumVpnSessions, 10) || 0;
+      const score = parseInt(record.Score, 10) || 0;
+      const countryShort = (record.CountryShort || 'XX').toUpperCase();
+      const countryLong = record.CountryLong || countryShort;
+
+      parsedList.push({
+        id: parsedList.length + 1,
+        ip: record.IP,
+        hostName: record.HostName || '',
+        countryShort,
+        countryLong,
+        speedMbps,
+        totalUsers,
+        ping,
+        sessions,
+        score,
+        operator: record.Operator || '',
+        ovpn
+      });
+    }
+
+    return parsedList;
+  }
+
+  // ==========================================
+  // 3. TABLE & FILTERING & PERSISTENT SELECTION
+  // ==========================================
+
+  function populateCountryDropdown(nodes) {
+    const countryCounts = {};
+    const countryNames = {};
+    for (const node of nodes) {
+      countryCounts[node.countryShort] = (countryCounts[node.countryShort] || 0) + 1;
+      if (!countryNames[node.countryShort]) {
+        countryNames[node.countryShort] = node.countryLong;
+      }
+    }
+
+    const selectedPerCountry = {};
+    for (const node of nodes) {
+      if (selectedNodeIds.has(node.id)) {
+        selectedPerCountry[node.countryShort] = (selectedPerCountry[node.countryShort] || 0) + 1;
+      }
+    }
+
+    const sortedCountries = Object.keys(countryCounts).sort((a, b) => countryCounts[b] - countryCounts[a]);
+    const currentVal = filterCountry.value;
+
+    let html = `<option value="ALL">全部国家 / All (${nodes.length} 个节点)</option>`;
+    for (const c of sortedCountries) {
+      const selCount = selectedPerCountry[c] || 0;
+      const selLabel = selCount > 0 ? ` [已选 ${selCount}]` : '';
+      const cName = countryNames[c] ? ` - ${escapeHtml(countryNames[c])}` : '';
+      const escapedCode = escapeHtml(c);
+      html += `<option value="${escapedCode}">${escapedCode}${cName} (${countryCounts[c]} 节点)${selLabel}</option>`;
+    }
+
+    filterCountry.innerHTML = html;
+
+    if (sortedCountries.includes(currentVal)) {
+      filterCountry.value = currentVal;
+    } else {
+      filterCountry.value = 'ALL';
+    }
+  }
+
+  // Filter ONLY by country, sort ONLY by TotalUsers
+  function applyFiltersAndSort() {
+    const selectedCountry = filterCountry.value;
+    const sortDir = sortOrder.value;
+
+    filteredNodes = rawNodes.filter(node => {
+      if (selectedCountry !== 'ALL' && node.countryShort !== selectedCountry) {
+        return false;
+      }
+      return true;
+    });
+
+    // Sort strictly by TotalUsers (asc or desc)
+    filteredNodes.sort((a, b) => {
+      const res = a.totalUsers - b.totalUsers;
+      return sortDir === 'asc' ? res : -res;
+    });
+
+    renderTable();
+    updateStatsBadge();
+  }
+
+  function renderTable() {
+    if (filteredNodes.length === 0) {
+      nodesTableBody.innerHTML = `
+        <tr>
+          <td colspan="11" class="empty-state">
+            当前国家或筛选下没有节点数据。
+          </td>
+        </tr>
+      `;
+      checkAllBoxes.checked = false;
+      checkAllBoxes.indeterminate = false;
+      return;
+    }
+
+    let allChecked = true;
+    let anyChecked = false;
+
+    const rows = filteredNodes.map((node, index) => {
+      const isChecked = selectedNodeIds.has(node.id);
+      if (isChecked) anyChecked = true;
+      else allChecked = false;
+
+      const pingClass = node.ping < 100 ? 'good' : (node.ping < 250 ? 'medium' : 'poor');
+      const protoClass = node.ovpn.proto === 'tcp' ? 'tcp' : 'udp';
+
+      const escId = escapeHtml(String(node.id));
+      const escCountryShort = escapeHtml(node.countryShort);
+      const escCountryLong = escapeHtml(node.countryLong);
+      const escIp = escapeHtml(node.ip);
+      const escPort = escapeHtml(String(node.ovpn.port));
+      const escProto = escapeHtml(node.ovpn.proto);
+      const escOperator = escapeHtml(node.operator || node.hostName || '-');
+      const escOperatorTitle = escapeHtml(node.operator || node.hostName || '');
+
+      return `
+        <tr class="${isChecked ? 'selected' : ''}" data-id="${escId}">
+          <td style="text-align:center;">
+            <input type="checkbox" class="node-check" data-id="${escId}" ${isChecked ? 'checked' : ''}>
+          </td>
+          <td style="color:var(--text-dim);">${index + 1}</td>
+          <td>
+            <div class="cell-country">
+              <span class="country-badge">${escCountryShort}</span>
+              <span class="country-name">${escCountryLong}</span>
+            </div>
+          </td>
+          <td>
+            <span class="cell-mono">${escIp}</span>
+            <small style="color:var(--text-muted); margin-left:4px;">:${escPort}</small>
+          </td>
+          <td>
+            <span class="proto-badge ${protoClass}">${escProto}</span>
+          </td>
+          <td>
+            <span class="tag-users">${node.totalUsers.toLocaleString()}</span>
+          </td>
+          <td>
+            <span class="cell-mono">${node.sessions}</span>
+          </td>
+          <td>
+            <span class="tag-speed">${node.speedMbps} <small>Mbps</small></span>
+          </td>
+          <td>
+            <span class="tag-ping ${pingClass}">${node.ping} <small>ms</small></span>
+          </td>
+          <td style="max-width: 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escOperatorTitle}">
+            <span style="font-size:0.8rem;">${escOperator}</span>
+          </td>
+          <td style="text-align:center;">
+            <button class="btn btn-secondary btn-sm btn-view-ovpn" data-id="${escId}" style="padding:2px 8px; font-size:0.72rem;">详情</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    nodesTableBody.innerHTML = rows.join('');
+    checkAllBoxes.checked = filteredNodes.length > 0 && allChecked;
+    checkAllBoxes.indeterminate = anyChecked && !allChecked;
+  }
+
+  function updateCountryDropdownBadges() {
+    if (!rawNodes || rawNodes.length === 0) return;
+    const selectedPerCountry = {};
+    for (const node of rawNodes) {
+      if (selectedNodeIds.has(node.id)) {
+        selectedPerCountry[node.countryShort] = (selectedPerCountry[node.countryShort] || 0) + 1;
+      }
+    }
+    for (const opt of filterCountry.options) {
+      if (opt.value === 'ALL') {
+        opt.text = `全部国家 (${rawNodes.length} 个节点)` + (selectedNodeIds.size > 0 ? ` [已选 ${selectedNodeIds.size}]` : '');
+      } else {
+        const count = rawNodes.filter(n => n.countryShort === opt.value).length;
+        const sel = selectedPerCountry[opt.value] || 0;
+        const nodeSample = rawNodes.find(n => n.countryShort === opt.value);
+        const cName = nodeSample && nodeSample.countryLong ? ` - ${nodeSample.countryLong}` : '';
+        opt.text = `${opt.value}${cName} (${count} 节点)` + (sel > 0 ? ` [已选 ${sel}]` : '');
+      }
+    }
+  }
+
+  function updateStatsBadge() {
+    statsBadge.innerHTML = `已加载: <b>${rawNodes.length}</b> 节点 | 当前展示: <b>${filteredNodes.length}</b> | 已勾选: <b class="hl-green" id="selectedCountText">${selectedNodeIds.size}</b>`;
+    checkedCountHeader.textContent = selectedNodeIds.size;
+
+    const elHeaderTotal = document.getElementById('statHeaderTotal');
+    if (elHeaderTotal) elHeaderTotal.textContent = rawNodes.length;
+    const elHeaderSelected = document.getElementById('statHeaderSelected');
+    if (elHeaderSelected) elHeaderSelected.textContent = selectedNodeIds.size;
+
+    updateCountryDropdownBadges();
+  }
+
+  // ==========================================
+  // 4. SELECTED NODES SECTION (PER-NODE DIALER)
+  // ==========================================
+
+  function renderSelectedNodesTable() {
+    const selectedNodes = rawNodes.filter(n => selectedNodeIds.has(n.id));
+    checkedCountHeader.textContent = selectedNodes.length;
+
+    if (selectedNodes.length === 0) {
+      selectedNodesTbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty-state">
+            当前尚未勾选任何节点。请在上方「第 2 步」中勾选您需要的节点，勾选后将在此列出并可单独设置前置代理。
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const rows = selectedNodes.map((node, index) => {
+      const nodeName = `[${node.countryShort}] ${node.ip}`;
+      const escId = escapeHtml(String(node.id));
+      const escNodeName = escapeHtml(nodeName);
+      const escCountryShort = escapeHtml(node.countryShort);
+      const escIp = escapeHtml(node.ip);
+      const escPort = escapeHtml(String(node.ovpn.port));
+      const escProto = escapeHtml(node.ovpn.proto);
+
+      // Dynamic authentication detection
+      let authLabel = '账号密码 (vpn/vpn)';
+      if (node.ovpn.hasCertKey && node.ovpn.hasAuthUserPass) {
+        authLabel = '证书 + 账号密码';
+      } else if (node.ovpn.hasCertKey) {
+        authLabel = '证书认证 (cert/key)';
+      } else {
+        authLabel = '账号密码 (vpn/vpn)';
+      }
+      const escAuthLabel = escapeHtml(authLabel);
+
+      // Current dialer selection for this node
+      const currentDialer = nodeDialerMap.has(node.id) 
+        ? nodeDialerMap.get(node.id) 
+        : (frontProxies.length > 0 ? frontProxies[0].name : '');
+
+      const optionsHtml = frontProxies.map(p => {
+        const isSel = p.name === currentDialer ? 'selected' : '';
+        const escPName = escapeHtml(p.name);
+        return `<option value="${escPName}" ${isSel}>${escPName}</option>`;
+      }).join('');
+
+      return `
+        <tr data-id="${escId}">
+          <td style="color:var(--text-dim);">${index + 1}</td>
+          <td><b>${escNodeName}</b></td>
+          <td><span class="country-badge">${escCountryShort}</span></td>
+          <td><span class="cell-mono">${escIp}:${escPort}</span></td>
+          <td><span class="proto-badge ${escProto}">${escProto}</span></td>
+          <td><span class="auth-badge">${escAuthLabel}</span></td>
+          <td>
+            <select class="selected-dialer-select" data-id="${escId}">
+              <option value="">直连 (无中继)</option>
+              ${optionsHtml}
+            </select>
+          </td>
+          <td style="text-align:center;">
+            <button class="btn btn-danger-outline btn-sm btn-uncheck-node" data-id="${escId}" title="取消勾选">✕</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    selectedNodesTbody.innerHTML = rows.join('');
+  }
+
+  // ==========================================
+  // 5. YAML GENERATION (PROXIES ONLY)
+  // ==========================================
+
+  function generateFrontProxyYaml(proxy) {
+    const name = proxy.name || `FRONT-${proxy.protocol.toUpperCase()}`;
+    let lines = [];
+    lines.push(`  - name: ${yamlQuote(name)}`);
+    lines.push(`    type: ${proxy.protocol}`);
+    lines.push(`    server: ${yamlQuote(proxy.server)}`);
+    if (proxy.mports) {
+      lines.push(`    ports: ${yamlQuote(proxy.mports)}`);
+    } else {
+      lines.push(`    port: ${proxy.port}`);
+    }
+
+    if (proxy.protocol === 'vless') {
+      lines.push(`    uuid: ${yamlQuote(proxy.uuid)}`);
+      lines.push(`    udp: true`);
+      if (proxy.flow) lines.push(`    flow: ${proxy.flow}`);
+      lines.push(`    tls: true`);
+      lines.push(`    network: ${proxy.network || 'tcp'}`);
+      if (proxy.network === 'ws' && proxy.wsOpts) {
+        lines.push(`    ws-opts:`);
+        lines.push(`      path: ${yamlQuote(proxy.wsOpts.path || '/')}`);
+        if (proxy.wsOpts.headers && proxy.wsOpts.headers.Host) {
+          lines.push(`      headers:`);
+          lines.push(`        Host: ${yamlQuote(proxy.wsOpts.headers.Host)}`);
+        }
+      }
+      if (proxy.servername) lines.push(`    servername: ${yamlQuote(proxy.servername)}`);
+      if (proxy.clientFingerprint) lines.push(`    client-fingerprint: ${yamlQuote(proxy.clientFingerprint)}`);
+      if (proxy.isReality && proxy.realityOpts) {
+        lines.push(`    reality-opts:`);
+        lines.push(`      public-key: ${yamlQuote(proxy.realityOpts.publicKey)}`);
+        if (proxy.realityOpts.shortId) lines.push(`      short-id: ${yamlQuote(proxy.realityOpts.shortId)}`);
+      }
+    } else if (proxy.protocol === 'anytls') {
+      lines.push(`    password: ${yamlQuote(proxy.password)}`);
+      lines.push(`    udp: true`);
+      if (proxy.sni) lines.push(`    sni: ${yamlQuote(proxy.sni)}`);
+      if (proxy.clientFingerprint) lines.push(`    client-fingerprint: ${yamlQuote(proxy.clientFingerprint)}`);
+      if (proxy.skipCertVerify) lines.push(`    skip-cert-verify: true`);
+    } else if (proxy.protocol === 'vmess') {
+      lines.push(`    uuid: ${yamlQuote(proxy.uuid)}`);
+      lines.push(`    alterId: ${proxy.alterId || 0}`);
+      lines.push(`    cipher: ${proxy.cipher || 'auto'}`);
+      lines.push(`    udp: true`);
+      lines.push(`    network: ${proxy.network || 'ws'}`);
+      if (proxy.wsOpts) {
+        lines.push(`    ws-opts:`);
+        lines.push(`      path: ${yamlQuote(proxy.wsOpts.path || '/')}`);
+        if (proxy.wsOpts.headers && proxy.wsOpts.headers.Host) {
+          lines.push(`      headers:`);
+          lines.push(`        Host: ${yamlQuote(proxy.wsOpts.headers.Host)}`);
+        }
+      }
+      if (proxy.tls) {
+        lines.push(`    tls: true`);
+        if (proxy.servername) lines.push(`    servername: ${yamlQuote(proxy.servername)}`);
+        if (proxy.clientFingerprint) lines.push(`    client-fingerprint: ${yamlQuote(proxy.clientFingerprint)}`);
+      }
+    } else if (proxy.protocol === 'hysteria2') {
+      lines.push(`    password: ${yamlQuote(proxy.password)}`);
+      if (proxy.sni) lines.push(`    sni: ${yamlQuote(proxy.sni)}`);
+      if (proxy.skipCertVerify) lines.push(`    skip-cert-verify: true`);
+      if (proxy.obfs) {
+        lines.push(`    obfs: ${proxy.obfs}`);
+        if (proxy.obfsPassword) lines.push(`    obfs-password: ${yamlQuote(proxy.obfsPassword)}`);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  // OpenVPN YAML:
+  // 1. Naming strictly [Country] IP
+  // 2. Authentication dynamically based on node config (cert/key or username/password or both)
+  // 3. Omit remote DNS
+  // 4. Per-node dialer-proxy
+  function generateOpenVpnYaml(node, nodeName, dialerProxy) {
+    let lines = [];
+    lines.push(`  - name: ${yamlQuote(nodeName)}`);
+    lines.push(`    type: openvpn`);
+    lines.push(`    server: ${yamlQuote(node.ovpn.server)}`);
+    lines.push(`    port: ${node.ovpn.port}`);
+    lines.push(`    proto: ${node.ovpn.proto}`);
+
+    // Dynamic Auth generation based strictly on what the node's config requires:
+    // VPN Gate standard default credentials are "vpn"/"vpn" when password authentication is used or when client cert/key is absent
+    if (node.ovpn.hasAuthUserPass || !node.ovpn.hasCertKey) {
+      lines.push(`    username: "vpn"`);
+      lines.push(`    password: "vpn"`);
+    }
+
+    // Output CA
+    lines.push(yamlBlock('    ', 'ca', node.ovpn.ca).trimEnd());
+
+    // If client cert & key exist in the node, output them
+    if (node.ovpn.hasCertKey && node.ovpn.cert && node.ovpn.key) {
+      lines.push(yamlBlock('    ', 'cert', node.ovpn.cert).trimEnd());
+      lines.push(yamlBlock('    ', 'key', node.ovpn.key).trimEnd());
+    }
+
+    if (node.ovpn.tlsCrypt) {
+      lines.push(yamlBlock('    ', 'tls-crypt', node.ovpn.tlsCrypt).trimEnd());
+    }
+    if (node.ovpn.cipher) {
+      lines.push(`    cipher: ${node.ovpn.cipher}`);
+    }
+    if (node.ovpn.dataCiphers && node.ovpn.dataCiphers.length > 0) {
+      lines.push(`    data-ciphers:`);
+      for (const c of node.ovpn.dataCiphers) {
+        lines.push(`      - ${c}`);
+      }
+    }
+    if (node.ovpn.auth && ['MD5', 'SHA1', 'SHA256', 'SHA384', 'SHA512'].includes(node.ovpn.auth.toUpperCase())) {
+      lines.push(`    auth: ${node.ovpn.auth.toUpperCase()}`);
+    }
+    if (node.ovpn.compLzo) {
+      const lzoVal = ['yes', 'no', 'adaptive'].includes(node.ovpn.compLzo.toLowerCase()) ? node.ovpn.compLzo.toLowerCase() : 'yes';
+      lines.push(`    comp-lzo: ${yamlQuote(lzoVal)}`);
+    }
+    lines.push(`    dev: tun`);
+
+    // Per-node dialer-proxy
+    if (dialerProxy) {
+      lines.push(`    dialer-proxy: ${yamlQuote(dialerProxy)}`);
+    }
+    return lines.join('\n');
+  }
+
+  // Naming strictly: [国家]IP
+  function makeNodeName(node, nameTracker) {
+    const base = `[${node.countryShort}] ${node.ip}`;
+    let finalName = base;
+    let counter = 1;
+    while (nameTracker.has(finalName)) {
+      counter++;
+      finalName = `${base} ${counter}`;
+    }
+    nameTracker.add(finalName);
+    return finalName;
+  }
+
+  // Debounced YAML generation using requestAnimationFrame
+  let yamlScheduled = false;
+  function scheduleYamlGeneration() {
+    if (yamlScheduled) return;
+    yamlScheduled = true;
+    requestAnimationFrame(() => {
+      yamlScheduled = false;
+      generateYaml();
+    });
+  }
+
+  // Generates strictly the proxies: YAML section
+  function generateYaml() {
+    const selectedNodes = rawNodes.filter(n => selectedNodeIds.has(n.id));
+    const includeFront = optIncludeFront.checked && frontProxies.length > 0;
+
+    if (!includeFront && selectedNodes.length === 0) {
+      yamlOutput.value = '# 请在上方勾选节点或添加前置代理以生成配置\nproxies: []';
+      const elYamlLines = document.getElementById('yamlLineCount');
+      if (elYamlLines) elYamlLines.textContent = '0 行';
+      return;
+    }
+
+    let yamlLines = ['proxies:'];
+    const nameTracker = new Set();
+
+    // 1. Output all added front proxies
+    if (includeFront) {
+      for (const p of frontProxies) {
+        nameTracker.add(p.name);
+        yamlLines.push(generateFrontProxyYaml(p));
+      }
+    }
+
+    // 2. Output selected OpenVPN nodes named strictly "[Country] IP"
+    for (let i = 0; i < selectedNodes.length; i++) {
+      const node = selectedNodes[i];
+      const nodeName = makeNodeName(node, nameTracker);
+
+      // Get this specific node's individual dialer-proxy
+      let nodeDialer = '';
+      if (nodeDialerMap.has(node.id)) {
+        nodeDialer = nodeDialerMap.get(node.id);
+      } else if (frontProxies.length > 0) {
+        nodeDialer = frontProxies[0].name;
+      }
+
+      yamlLines.push(generateOpenVpnYaml(node, nodeName, nodeDialer || null));
+    }
+
+    yamlOutput.value = yamlLines.join('\n') + '\n';
+    const elYamlLines = document.getElementById('yamlLineCount');
+    if (elYamlLines) elYamlLines.textContent = `${yamlLines.length} 行`;
+  }
+
+  // ==========================================
+  // 6. MODAL (VIEW OVPN DETAILS)
+  // ==========================================
+
+  function openOvpnModal(nodeId) {
+    const node = rawNodes.find(n => n.id === nodeId);
+    if (!node) return;
+    activeModalNode = node;
+
+    const escCountryShort = escapeHtml(node.countryShort);
+    const escCountryLong = escapeHtml(node.countryLong);
+    const escIp = escapeHtml(node.ip);
+    const escPort = escapeHtml(String(node.ovpn.port));
+    const escProto = escapeHtml(node.ovpn.proto.toUpperCase());
+
+    modalTitle.textContent = `节点详情: [${node.countryShort}] ${node.ip}:${node.ovpn.port} (${node.ovpn.proto.toUpperCase()})`;
+    modalMetaGrid.innerHTML = `
+      <div class="meta-item"><span>国家/地区</span><b>${escCountryShort} (${escCountryLong})</b></div>
+      <div class="meta-item"><span>IP:端口</span><b>${escIp}:${escPort}</b></div>
+      <div class="meta-item"><span>传输协议</span><b>${escProto}</b></div>
+      <div class="meta-item"><span>TotalUsers</span><b>${node.totalUsers.toLocaleString()}</b></div>
+      <div class="meta-item"><span>标称速度</span><b>${node.speedMbps} Mbps</b></div>
+      <div class="meta-item"><span>Ping 延迟</span><b>${node.ping} ms</b></div>
+      <div class="meta-item"><span>auth-user-pass</span><b>${node.ovpn.hasAuthUserPass ? '包含 (账号密码)' : '无'}</b></div>
+      <div class="meta-item"><span>cert/key</span><b>${node.ovpn.hasCertKey ? '包含 (客户端证书)' : '无'}</b></div>
+    `;
+    modalOvpnText.value = node.ovpn.rawOvpn;
+    ovpnModal.classList.add('open');
+  }
+
+  function closeOvpnModal() {
+    ovpnModal.classList.remove('open');
+    activeModalNode = null;
+  }
+
+  // ==========================================
+  // 7. EVENT LISTENERS & LOGIC
+  // ==========================================
+
+  // Delegated events for front proxies table
+  frontProxiesTbody.addEventListener('change', (e) => {
+    const input = e.target.closest('.front-name-input');
+    if (!input) return;
+    const id = input.dataset.id;
+    const newName = input.value.trim();
+    const p = frontProxies.find(item => item.id === id);
+    if (!p) return;
+    if (!newName) {
+      input.value = p.name;
+      return;
+    }
+    const isDuplicate = frontProxies.some(item => item.id !== id && item.name === newName);
+    if (isDuplicate) {
+      alert(`前置代理名称「${newName}」已存在，请使用其他名称！`);
+      input.value = p.name;
+      return;
+    }
+    const oldName = p.name;
+    p.name = newName;
+    for (let [nodeId, dialer] of nodeDialerMap.entries()) {
+      if (dialer === oldName) nodeDialerMap.set(nodeId, newName);
+    }
+    updateBatchDialerDropdown();
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+  });
+
+  frontProxiesTbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-del-proxy');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const p = frontProxies.find(item => item.id === id);
+    if (p) {
+      const removedName = p.name;
+      frontProxies = frontProxies.filter(item => item.id !== id);
+      for (let [nodeId, dialer] of nodeDialerMap.entries()) {
+        if (dialer === removedName) nodeDialerMap.delete(nodeId);
+      }
+      renderFrontProxiesList();
+      updateBatchDialerDropdown();
+      renderSelectedNodesTable();
+      scheduleYamlGeneration();
+      showToast('已移除该前置代理');
+    }
+  });
+
+  // Add front proxy button
+  btnAddFrontProxy.addEventListener('click', () => {
+    addFrontProxiesFromText(frontProxyInput.value);
+  });
+
+  btnClearProxyInput.addEventListener('click', () => {
+    frontProxyInput.value = '';
+  });
+
+  btnClearAllFrontProxies.addEventListener('click', () => {
+    if (frontProxies.length === 0) return;
+    if (confirm('确定要清空所有已添加的前置代理吗？')) {
+      frontProxies = [];
+      nodeDialerMap.clear();
+      renderFrontProxiesList();
+      updateBatchDialerDropdown();
+      renderSelectedNodesTable();
+      scheduleYamlGeneration();
+      showToast('已清空全部前置代理');
+    }
+  });
+
+  // Example front proxies
+  btnTestExampleProxy.addEventListener('click', () => {
+    const sample = `vless://b831381d-6324-4d53-ad4f-8cda48b30811@104.28.19.88:443?security=reality&flow=xtls-rprx-vision&type=tcp&sni=www.microsoft.com&fp=chrome&pbk=1yH_64a_Q3gK9Z7Nq8v2p4e0i1o2u3y4t5r6w7q8a9s&sid=6ba855e1#Front-VLESS-1
+hy2://my-hy2-pass@198.51.100.22:8443?sni=apple.com&insecure=1#Front-HY2-2`;
+    frontProxyInput.value = sample;
+    addFrontProxiesFromText(sample);
+  });
+
+  // Batch apply dialer to all selected nodes
+  btnApplyBatchDialer.addEventListener('click', () => {
+    if (selectedNodeIds.size === 0) {
+      alert('请先在上方勾选节点！');
+      return;
+    }
+    const targetDialer = batchDialerAll.value;
+    for (const id of selectedNodeIds) {
+      nodeDialerMap.set(id, targetDialer);
+    }
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+    showToast(`已将所有勾选节点的前置代理设为「${targetDialer || '直连'}」`);
+  });
+
+  // Clear all checked nodes from Section 3
+  btnClearCheckedSection.addEventListener('click', () => {
+    if (selectedNodeIds.size === 0) return;
+    selectedNodeIds.clear();
+    updateStatsBadge();
+    renderTable();
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+    showToast('已清空已选列表');
+  });
+
+  // Manual Parse CSV
+  btnParseCsv.addEventListener('click', () => {
+    const text = csvTextInput.value.trim();
+    if (!text) {
+      alert('请先在文本框中粘贴 VPN Gate 的 CSV 数据！');
+      return;
+    }
+    try {
+      loadNodesFromText(text);
+      showToast(`已成功解析 ${rawNodes.length} 个可用节点！`);
+    } catch (err) {
+      alert(`解析失败: ${err.message}`);
+    }
+  });
+
+  // Clear CSV Textarea
+  btnClearCsv.addEventListener('click', () => {
+    csvTextInput.value = '';
+  });
+
+  // File Upload
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        loadNodesFromText(evt.target.result);
+        csvTextInput.value = evt.target.result.slice(0, 1500) + '... (已导入完整文件)';
+        showToast(`文件加载成功，共解析 ${rawNodes.length} 个可用节点！`);
+      } catch (err) {
+        alert(`文件解析失败: ${err.message}`);
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  });
+
+  // Drag & drop into textarea
+  csvTextInput.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    csvTextInput.style.borderColor = 'var(--primary)';
+  });
+  csvTextInput.addEventListener('dragleave', () => {
+    csvTextInput.style.borderColor = 'var(--border)';
+  });
+  csvTextInput.addEventListener('drop', (e) => {
+    e.preventDefault();
+    csvTextInput.style.borderColor = 'var(--border)';
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          loadNodesFromText(evt.target.result);
+          csvTextInput.value = evt.target.result.slice(0, 1500) + '... (已拖入完整文件)';
+          showToast(`文件拖入成功，共解析 ${rawNodes.length} 个可用节点！`);
+        } catch (err) {
+          alert(`解析失败: ${err.message}`);
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+  });
+
+  function loadNodesFromText(csvText) {
+    const nodes = parseVpnGateCsv(csvText);
+    if (!nodes || nodes.length === 0) {
+      throw new Error('未在提供的内容中解析出有效节点');
+    }
+    selectedNodeIds.clear();
+    nodeDialerMap.clear();
+    rawNodes = nodes;
+    populateCountryDropdown(rawNodes);
+    applyFiltersAndSort();
+    renderSelectedNodesTable();
+    generateYaml();
+  }
+
+  // Filter & Sort events
+  filterCountry.addEventListener('change', applyFiltersAndSort);
+
+  sortOrder.addEventListener('change', () => {
+    updateSortHeaderIcon();
+    applyFiltersAndSort();
+  });
+
+  thTotalUsers.addEventListener('click', () => {
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
+    updateSortHeaderIcon();
+    applyFiltersAndSort();
+  });
+
+  function updateSortHeaderIcon() {
+    thTotalUsers.classList.remove('sorted-asc', 'sorted-desc');
+    thTotalUsers.classList.add(sortOrder.value === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  }
+
+  // Delegated events for nodes table (checkbox & view ovpn)
+  nodesTableBody.addEventListener('change', (e) => {
+    const cb = e.target.closest('.node-check');
+    if (!cb) return;
+    const id = parseInt(cb.dataset.id, 10);
+    const tr = cb.closest('tr');
+    if (cb.checked) {
+      selectedNodeIds.add(id);
+      if (tr) tr.classList.add('selected');
+    } else {
+      selectedNodeIds.delete(id);
+      if (tr) tr.classList.remove('selected');
+    }
+    updateStatsBadge();
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+  });
+
+  nodesTableBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-view-ovpn');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    openOvpnModal(id);
+  });
+
+  // Delegated events for selected nodes table (dialer select & uncheck)
+  selectedNodesTbody.addEventListener('change', (e) => {
+    const sel = e.target.closest('.selected-dialer-select');
+    if (!sel) return;
+    const id = parseInt(sel.dataset.id, 10);
+    nodeDialerMap.set(id, sel.value.trim());
+    scheduleYamlGeneration();
+  });
+
+  selectedNodesTbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-uncheck-node');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    selectedNodeIds.delete(id);
+    updateStatsBadge();
+    renderTable();
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+  });
+
+  // Table header checkbox (toggles checkboxes of visible rows in table)
+  checkAllBoxes.addEventListener('change', () => {
+    const isChecked = checkAllBoxes.checked;
+    filteredNodes.forEach(node => {
+      if (isChecked) {
+        selectedNodeIds.add(node.id);
+      } else {
+        selectedNodeIds.delete(node.id);
+      }
+    });
+    renderTable();
+    updateStatsBadge();
+    renderSelectedNodesTable();
+    scheduleYamlGeneration();
+  });
+
+  // Global clear all checked
+  btnDeselectAllGlobal.addEventListener('click', () => {
+    if (selectedNodeIds.size === 0) return;
+    if (confirm(`确定要清空所有已勾选的 ${selectedNodeIds.size} 个节点吗？`)) {
+      selectedNodeIds.clear();
+      renderTable();
+      updateStatsBadge();
+      renderSelectedNodesTable();
+      scheduleYamlGeneration();
+      showToast('已清空全部勾选');
+    }
+  });
+
+  // Output options
+  btnGenerate.addEventListener('click', () => {
+    generateYaml();
+    showToast('Proxies 配置已生成');
+  });
+
+  optIncludeFront.addEventListener('change', generateYaml);
+
+  // Copy YAML
+  btnCopyYaml.addEventListener('click', async () => {
+    const text = yamlOutput.value;
+    if (!text || text.includes('proxies: []')) {
+      alert('当前没有可复制的配置内容！请先勾选节点。');
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('🎉 已成功将 proxies 配置复制到剪贴板！');
+        return;
+      } catch (e) {
+        // fallback to execCommand below
+      }
+    }
+    try {
+      yamlOutput.select();
+      document.execCommand('copy');
+      showToast('🎉 已通过兼容模式复制到剪贴板！');
+    } catch (e) {
+      alert('复制失败，请手动选择配置文本复制。');
+    }
+  });
+
+  // Download YAML
+  btnDownloadYaml.addEventListener('click', () => {
+    const text = yamlOutput.value;
+    if (!text || text.includes('proxies: []')) {
+      alert('当前没有可下载的配置内容！');
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/yaml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'VPNGate-Proxies.yaml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('已开始下载 VPNGate-Proxies.yaml');
+  });
+
+  // Modal actions
+  btnModalClose.addEventListener('click', closeOvpnModal);
+  btnModalOk.addEventListener('click', closeOvpnModal);
+  ovpnModal.addEventListener('click', (e) => {
+    if (e.target === ovpnModal) closeOvpnModal();
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && ovpnModal.classList.contains('open')) {
+      closeOvpnModal();
+    }
+  });
+
+  btnDownloadSingleOvpn.addEventListener('click', () => {
+    if (!activeModalNode) return;
+    const blob = new Blob([activeModalNode.ovpn.rawOvpn], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeCountry = activeModalNode.countryShort.replace(/[:\/\\?*\"<>|]/g, '_');
+    const safeIp = activeModalNode.ip.replace(/[:\/\\?*\"<>|]/g, '_');
+    a.download = `VPNGate-${safeCountry}-${safeIp}.ovpn`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`已下载单节点 OpenVPN 配置文件`);
+  });
+
+  // Initialize
+  generateYaml();
+})();
+</script>
+</body>
+</html>
